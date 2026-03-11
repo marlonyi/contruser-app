@@ -1,0 +1,110 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Rol {
+  ADMIN
+  ENCARGADO
+  EMPLEADO
+  CLIENTE
+}
+
+enum EstadoUsuario {
+  ACTIVO
+  INACTIVO
+}
+
+enum EstadoHerramienta {
+  DISPONIBLE
+  PRESTADA
+  MANTENIMIENTO
+  DANADA
+  PERDIDA
+}
+
+enum TipoTransaccion {
+  ENTREGA
+  DEVOLUCION
+}
+
+enum TipoMantenimiento {
+  PREVENTIVO
+  CORRECTIVO
+}
+
+model Usuario {
+  id               Int           @id @default(autoincrement())
+  nombre_completo  String
+  documento        String        @unique
+  email            String        @unique
+  password         String
+  telefono         String?
+  direccion        String?
+  rol              Rol           @default(EMPLEADO)
+  estado           EstadoUsuario @default(ACTIVO)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  transaccionesComoResponsable Transaccion[]   @relation("UsuarioResponsable")
+  transaccionesComoEncargado   Transaccion[]   @relation("Encargado")
+  mantenimientos               Mantenimiento[]
+}
+
+model Categoria {
+  id           Int           @id @default(autoincrement())
+  nombre       String        @unique
+  descripcion  String?
+  herramientas Herramienta[]
+}
+
+model Herramienta {
+  id            Int               @id @default(autoincrement())
+  codigo_qr     String            @unique
+  nombre        String
+  marca         String?
+  modelo        String?
+  fecha_compra  DateTime?
+  valor_compra  Decimal?          @db.Decimal(12, 2)
+  estado_actual EstadoHerramienta @default(DISPONIBLE)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  categoria_id   Int
+  categoria      Categoria       @relation(fields: [categoria_id], references: [id])
+  transacciones  Transaccion[]
+  mantenimientos Mantenimiento[]
+}
+
+model Transaccion {
+  id                         Int               @id @default(autoincrement())
+  tipo                       TipoTransaccion
+  fecha_hora                 DateTime          @default(now())
+  observaciones              String?
+  estado_herramienta_momento EstadoHerramienta
+
+  herramienta_id         Int
+  herramienta            Herramienta @relation(fields: [herramienta_id], references: [id])
+  usuario_responsable_id Int
+  usuario_responsable    Usuario     @relation("UsuarioResponsable", fields: [usuario_responsable_id], references: [id])
+  encargado_id           Int
+  encargado              Usuario     @relation("Encargado", fields: [encargado_id], references: [id])
+}
+
+model Mantenimiento {
+  id            Int               @id @default(autoincrement())
+  tipo          TipoMantenimiento
+  fecha_inicio  DateTime
+  fecha_fin     DateTime?
+  costo         Decimal?          @db.Decimal(12, 2)
+  observaciones String?
+
+  herramienta_id Int
+  herramienta    Herramienta @relation(fields: [herramienta_id], references: [id])
+  tecnico_id     Int
+  tecnico        Usuario     @relation(fields: [tecnico_id], references: [id])
+}
