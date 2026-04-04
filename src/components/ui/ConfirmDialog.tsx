@@ -109,8 +109,8 @@ export function ConfirmDialog({
           <Button variant="secondary" onClick={onClose} disabled={loading}>
             {cancelLabel}
           </Button>
-          <Button variant={config.confirmVariant} onClick={onConfirm} loading={loading}>
-            {confirmLabel}
+          <Button variant={config.confirmVariant} onClick={onConfirm} disabled={loading}>
+            {loading ? "Procesando..." : confirmLabel}
           </Button>
         </div>
       </div>

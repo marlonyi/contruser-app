@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { Prisma } from "@/generated/prisma/client";
+import { Prisma, EstadoHerramienta } from "@/generated/prisma/client";
 import { z } from "zod";
 
 const MantenimientoSchema = z.object({
@@ -17,12 +17,18 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const herramientaId = searchParams.get("herramienta_id");
+    const tipo = searchParams.get("tipo");
+    const activos = searchParams.get("activos");
 
     const mantenimientos = await prisma.mantenimiento.findMany({
-      where: { ...(herramientaId && { herramienta_id: Number(herramientaId) }) },
+      where: {
+        ...(herramientaId && { herramienta_id: Number(herramientaId) }),
+        ...(tipo && { tipo: tipo as never }),
+        ...(activos === "true" && { fecha_fin: null }),
+      },
       include: {
-        herramienta: { select: { nombre: true, codigo_qr: true } },
-        tecnico: { select: { nombre_completo: true } },
+        herramienta: { select: { id: true, nombre: true, codigo_qr: true, estado_actual: true } },
+        tecnico: { select: { id: true, nombre_completo: true } },
       },
       orderBy: { fecha_inicio: "desc" },
     });
@@ -37,12 +43,75 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const data = MantenimientoSchema.parse(body);
 
+    // Validar existencia de herramienta y tecnico
+    const [herramienta, tecnico] = await Promise.all([
+      prisma.herramienta.findUnique({ where: { id: data.herramienta_id } }),
+      prisma.usuario.findUnique({ where: { id: data.tecnico_id } }),
+    ]);
+
+    if (!herramienta) {
+      return NextResponse.json({ error: "Herramienta no encontrada" }, { status: 400 });
+    }
+
+    if (!tecnico) {
+      return NextResponse.json({ error: "Técnico no encontrado" }, { status: 400 });
+    }
+
+    // Validar que el tecnico esté activo
+    if (tecnico.estado !== "ACTIVO") {
+      return NextResponse.json(
+        { error: "No se pueden asignar mantenimientos a usuarios inactivos" },
+        { status: 400 }
+      );
+    }
+
+    const estadoActual = herramienta.estado_actual as EstadoHerramienta;
+
+    // Validar que la herramienta no esté en mantenimiento ya
+    if (estadoActual === "MANTENIMIENTO") {
+      return NextResponse.json(
+        { error: "La herramienta ya se encuentra en mantenimiento" },
+        { status: 400 }
+      );
+    }
+
+    // Validar que la herramienta esté disponible o dañada para mantenimiento
+    if (estadoActual === "PRESTADA") {
+      return NextResponse.json(
+        { error: "No se puede enviar a mantenimiento una herramienta prestada. Debe devolverse primero." },
+        { status: 400 }
+      );
+    }
+
+    // Validar que la herramienta no esté perdida
+    if (estadoActual === "PERDIDA") {
+      return NextResponse.json(
+        { error: "No se puede enviar a mantenimiento una herramienta marcada como perdida" },
+        { status: 400 }
+      );
+    }
+
+    // Validar fechas
+    const fechaInicio = new Date(data.fecha_inicio);
+    const fechaFin = data.fecha_fin ? new Date(data.fecha_fin) : null;
+
+    if (fechaFin && fechaFin < fechaInicio) {
+      return NextResponse.json(
+        { error: "La fecha de fin no puede ser anterior a la fecha de inicio" },
+        { status: 400 }
+      );
+    }
+
     const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const mantenimiento = await tx.mantenimiento.create({
         data: {
-          ...data,
-          fecha_inicio: new Date(data.fecha_inicio),
-          fecha_fin: data.fecha_fin ? new Date(data.fecha_fin) : undefined,
+          tipo: data.tipo,
+          fecha_inicio: fechaInicio,
+          fecha_fin: fechaFin,
+          costo: data.costo,
+          observaciones: data.observaciones,
+          herramienta_id: data.herramienta_id,
+          tecnico_id: data.tecnico_id,
         },
         include: {
           herramienta: true,

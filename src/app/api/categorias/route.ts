@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
 const CategoriaSchema = z.object({
-  nombre: z.string().min(2),
+  nombre: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
   descripcion: z.string().optional(),
 });
 
@@ -24,7 +24,22 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const data = CategoriaSchema.parse(body);
 
-    const categoria = await prisma.categoria.create({ data });
+    // Verificar si ya existe una categoría con el mismo nombre
+    const existente = await prisma.categoria.findFirst({
+      where: { nombre: data.nombre },
+    });
+
+    if (existente) {
+      return NextResponse.json(
+        { error: "Ya existe una categoría con ese nombre" },
+        { status: 409 }
+      );
+    }
+
+    const categoria = await prisma.categoria.create({
+      data,
+      include: { _count: { select: { herramientas: true } } },
+    });
     return NextResponse.json(categoria, { status: 201 });
   } catch (error) {
     if (error instanceof z.ZodError) {
