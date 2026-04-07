@@ -17,6 +17,29 @@ interface RouteParams {
   params: Promise<{ id: string }>;
 }
 
+/**
+ * @openapi
+ * /herramientas/{id}:
+ *   get:
+ *     tags:
+ *       - Herramientas
+ *     summary: Obtener herramienta por ID
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Detalles de la herramienta
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Herramienta'
+ *       404:
+ *         description: Herramienta no encontrada
+ */
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
@@ -50,6 +73,49 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   }
 }
 
+/**
+ * @openapi
+ * /herramientas/{id}:
+ *   put:
+ *     tags:
+ *       - Herramientas
+ *     summary: Actualizar herramienta
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nombre:
+ *                 type: string
+ *               marca:
+ *                 type: string
+ *               modelo:
+ *                 type: string
+ *               fecha_compra:
+ *                 type: string
+ *               valor_compra:
+ *                 type: number
+ *               categoria_id:
+ *                 type: integer
+ *               estado_actual:
+ *                 type: string
+ *                 enum: [DISPONIBLE, PRESTADA, MANTENIMIENTO, DANADA, PERDIDA]
+ *     responses:
+ *       200:
+ *         description: Herramienta actualizada
+ *       400:
+ *         description: Datos inválidos o transición de estado no permitida
+ *       404:
+ *         description: Herramienta no encontrada
+ */
 export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
@@ -114,6 +180,27 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
   }
 }
 
+/**
+ * @openapi
+ * /herramientas/{id}:
+ *   delete:
+ *     tags:
+ *       - Herramientas
+ *     summary: Eliminar herramienta
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Herramienta eliminada
+ *       400:
+ *         description: No se puede eliminar (tiene historial)
+ *       404:
+ *         description: Herramienta no encontrada
+ */
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;

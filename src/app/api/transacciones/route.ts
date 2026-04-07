@@ -12,6 +12,47 @@ const TransaccionSchema = z.object({
   observaciones: z.string().optional(),
 });
 
+/**
+ * @openapi
+ * /transacciones:
+ *   get:
+ *     tags:
+ *       - Transacciones
+ *     summary: Listar transacciones
+ *     parameters:
+ *       - in: query
+ *         name: tipo
+ *         schema:
+ *           type: string
+ *           enum: [ENTREGA, DEVOLUCION]
+ *       - in: query
+ *         name: herramienta_id
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: usuario_id
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: fecha_desde
+ *         schema:
+ *           type: string
+ *           format: date
+ *       - in: query
+ *         name: fecha_hasta
+ *         schema:
+ *           type: string
+ *           format: date
+ *     responses:
+ *       200:
+ *         description: Lista de transacciones
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Transaccion'
+ */
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -43,6 +84,49 @@ export async function GET(request: NextRequest) {
   }
 }
 
+/**
+ * @openapi
+ * /transacciones:
+ *   post:
+ *     tags:
+ *       - Transacciones
+ *     summary: Registrar transacción (préstamo/devolución)
+ *     description: Registra una entrega o devolución de herramienta y actualiza su estado automáticamente
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - tipo
+ *               - herramienta_id
+ *               - usuario_responsable_id
+ *               - encargado_id
+ *               - estado_herramienta_momento
+ *             properties:
+ *               tipo:
+ *                 type: string
+ *                 enum: [ENTREGA, DEVOLUCION]
+ *               herramienta_id:
+ *                 type: integer
+ *               usuario_responsable_id:
+ *                 type: integer
+ *               encargado_id:
+ *                 type: integer
+ *               estado_herramienta_momento:
+ *                 type: string
+ *                 enum: [DISPONIBLE, PRESTADA, MANTENIMIENTO, DANADA, PERDIDA]
+ *               observaciones:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Transacción registrada
+ *       400:
+ *         description: Datos inválidos o validación fallida
+ *       403:
+ *         description: Solo ADMIN o ENCARGADO pueden registrar transacciones
+ */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();

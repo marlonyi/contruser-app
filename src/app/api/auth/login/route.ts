@@ -3,6 +3,56 @@ import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { cookies } from "next/headers";
 
+/**
+ * @openapi
+ * /auth/login:
+ *   post:
+ *     tags:
+ *       - Autenticación
+ *     summary: Iniciar sesión
+ *     description: Autentica un usuario y crea una sesión mediante cookie
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               password:
+ *                 type: string
+ *           examples:
+ *             login:
+ *               value:
+ *                 email: admin@contruser.com
+ *                 password: password123
+ *     responses:
+ *       200:
+ *         description: Login exitoso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                 nombre_completo:
+ *                   type: string
+ *                 email:
+ *                   type: string
+ *                 rol:
+ *                   type: string
+ *                   enum: [ADMIN, ENCARGADO, EMPLEADO, CLIENTE]
+ *       400:
+ *         description: Email y contraseña requeridos
+ *       401:
+ *         description: Credenciales incorrectas
+ */
 export async function POST(request: NextRequest) {
   try {
     const { email, password } = await request.json();

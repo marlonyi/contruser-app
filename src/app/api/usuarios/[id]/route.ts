@@ -18,6 +18,29 @@ interface RouteParams {
   params: Promise<{ id: string }>;
 }
 
+/**
+ * @openapi
+ * /usuarios/{id}:
+ *   get:
+ *     tags:
+ *       - Usuarios
+ *     summary: Obtener usuario por ID
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Detalles del usuario
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Usuario'
+ *       404:
+ *         description: Usuario no encontrado
+ */
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
@@ -53,6 +76,54 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   }
 }
 
+/**
+ * @openapi
+ * /usuarios/{id}:
+ *   put:
+ *     tags:
+ *       - Usuarios
+ *     summary: Actualizar usuario
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nombre_completo:
+ *                 type: string
+ *               documento:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               telefono:
+ *                 type: string
+ *               direccion:
+ *                 type: string
+ *               rol:
+ *                 type: string
+ *                 enum: [ADMIN, ENCARGADO, EMPLEADO, CLIENTE]
+ *               estado:
+ *                 type: string
+ *                 enum: [ACTIVO, INACTIVO]
+ *     responses:
+ *       200:
+ *         description: Usuario actualizado
+ *       400:
+ *         description: Datos inválidos
+ *       404:
+ *         description: Usuario no encontrado
+ *       409:
+ *         description: Email o documento duplicado
+ */
 export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
@@ -119,6 +190,27 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
   }
 }
 
+/**
+ * @openapi
+ * /usuarios/{id}:
+ *   delete:
+ *     tags:
+ *       - Usuarios
+ *     summary: Eliminar usuario
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Usuario eliminado
+ *       400:
+ *         description: No se puede eliminar (tiene registros)
+ *       404:
+ *         description: Usuario no encontrado
+ */
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;

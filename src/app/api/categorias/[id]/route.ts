@@ -11,6 +11,25 @@ interface RouteParams {
   params: Promise<{ id: string }>;
 }
 
+/**
+ * @openapi
+ * /categorias/{id}:
+ *   get:
+ *     tags:
+ *       - Categorías
+ *     summary: Obtener categoría por ID
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Detalles de la categoría
+ *       404:
+ *         description: Categoría no encontrada
+ */
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
@@ -31,6 +50,40 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   }
 }
 
+/**
+ * @openapi
+ * /categorias/{id}:
+ *   put:
+ *     tags:
+ *       - Categorías
+ *     summary: Actualizar categoría
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nombre:
+ *                 type: string
+ *               descripcion:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Categoría actualizada
+ *       400:
+ *         description: Datos inválidos
+ *       404:
+ *         description: Categoría no encontrada
+ *       409:
+ *         description: Nombre duplicado
+ */
 export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
@@ -77,6 +130,27 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
   }
 }
 
+/**
+ * @openapi
+ * /categorias/{id}:
+ *   delete:
+ *     tags:
+ *       - Categorías
+ *     summary: Eliminar categoría
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Categoría eliminada
+ *       400:
+ *         description: No se puede eliminar (tiene herramientas)
+ *       404:
+ *         description: Categoría no encontrada
+ */
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;

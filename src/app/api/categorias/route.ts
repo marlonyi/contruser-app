@@ -7,6 +7,23 @@ const CategoriaSchema = z.object({
   descripcion: z.string().optional(),
 });
 
+/**
+ * @openapi
+ * /categorias:
+ *   get:
+ *     tags:
+ *       - Categorías
+ *     summary: Listar categorías
+ *     responses:
+ *       200:
+ *         description: Lista de categorías
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Categoria'
+ */
 export async function GET() {
   try {
     const categorias = await prisma.categoria.findMany({
@@ -19,6 +36,35 @@ export async function GET() {
   }
 }
 
+/**
+ * @openapi
+ * /categorias:
+ *   post:
+ *     tags:
+ *       - Categorías
+ *     summary: Crear categoría
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - nombre
+ *             properties:
+ *               nombre:
+ *                 type: string
+ *                 minLength: 2
+ *               descripcion:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Categoría creada
+ *       400:
+ *         description: Datos inválidos
+ *       409:
+ *         description: Ya existe una categoría con ese nombre
+ */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();

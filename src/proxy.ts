@@ -4,7 +4,12 @@ export function proxy(request: NextRequest) {
   const session = request.cookies.get("contruser_session");
   const { pathname } = request.nextUrl;
 
-  const isPublicPath = pathname.startsWith("/login") || pathname.startsWith("/api/auth");
+  // Rutas públicas (no requieren autenticación)
+  const isPublicPath =
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/api/auth") ||
+    pathname.startsWith("/swagger") ||
+    pathname.startsWith("/api/docs");
 
   if (!session && !isPublicPath) {
     const loginUrl = new URL("/login", request.url);

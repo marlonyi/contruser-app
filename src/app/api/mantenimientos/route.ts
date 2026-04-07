@@ -13,6 +13,38 @@ const MantenimientoSchema = z.object({
   tecnico_id: z.number().int().positive(),
 });
 
+/**
+ * @openapi
+ * /mantenimientos:
+ *   get:
+ *     tags:
+ *       - Mantenimientos
+ *     summary: Listar mantenimientos
+ *     parameters:
+ *       - in: query
+ *         name: herramienta_id
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: tipo
+ *         schema:
+ *           type: string
+ *           enum: [PREVENTIVO, CORRECTIVO]
+ *       - in: query
+ *         name: activos
+ *         schema:
+ *           type: boolean
+ *         description: Filtrar mantenimientos activos (sin fecha_fin)
+ *     responses:
+ *       200:
+ *         description: Lista de mantenimientos
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Mantenimiento'
+ */
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -38,6 +70,49 @@ export async function GET(request: NextRequest) {
   }
 }
 
+/**
+ * @openapi
+ * /mantenimientos:
+ *   post:
+ *     tags:
+ *       - Mantenimientos
+ *     summary: Registrar mantenimiento
+ *     description: Crea un registro de mantenimiento y marca la herramienta en estado MANTENIMIENTO
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - tipo
+ *               - fecha_inicio
+ *               - herramienta_id
+ *               - tecnico_id
+ *             properties:
+ *               tipo:
+ *                 type: string
+ *                 enum: [PREVENTIVO, CORRECTIVO]
+ *               fecha_inicio:
+ *                 type: string
+ *                 format: date-time
+ *               fecha_fin:
+ *                 type: string
+ *                 format: date-time
+ *               costo:
+ *                 type: number
+ *               observaciones:
+ *                 type: string
+ *               herramienta_id:
+ *                 type: integer
+ *               tecnico_id:
+ *                 type: integer
+ *     responses:
+ *       201:
+ *         description: Mantenimiento registrado
+ *       400:
+ *         description: Datos inválidos o herramienta no disponible
+ */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();

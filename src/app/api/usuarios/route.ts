@@ -13,6 +13,23 @@ const UsuarioSchema = z.object({
   rol: z.enum(["ADMIN", "ENCARGADO", "EMPLEADO", "CLIENTE"]).default("EMPLEADO"),
 });
 
+/**
+ * @openapi
+ * /usuarios:
+ *   get:
+ *     tags:
+ *       - Usuarios
+ *     summary: Listar usuarios
+ *     responses:
+ *       200:
+ *         description: Lista de usuarios
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Usuario'
+ */
 export async function GET() {
   try {
     const usuarios = await prisma.usuario.findMany({
@@ -35,6 +52,50 @@ export async function GET() {
   }
 }
 
+/**
+ * @openapi
+ * /usuarios:
+ *   post:
+ *     tags:
+ *       - Usuarios
+ *     summary: Crear usuario
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - nombre_completo
+ *               - documento
+ *               - email
+ *               - password
+ *             properties:
+ *               nombre_completo:
+ *                 type: string
+ *               documento:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               password:
+ *                 type: string
+ *                 minLength: 6
+ *               telefono:
+ *                 type: string
+ *               direccion:
+ *                 type: string
+ *               rol:
+ *                 type: string
+ *                 enum: [ADMIN, ENCARGADO, EMPLEADO, CLIENTE]
+ *     responses:
+ *       201:
+ *         description: Usuario creado
+ *       400:
+ *         description: Datos inválidos
+ *       409:
+ *         description: Email o documento ya existe
+ */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();

@@ -12,6 +12,36 @@ const HerramientaSchema = z.object({
   categoria_id: z.number().int().positive(),
 });
 
+/**
+ * @openapi
+ * /herramientas:
+ *   get:
+ *     tags:
+ *       - Herramientas
+ *     summary: Listar herramientas
+ *     description: Obtiene todas las herramientas con filtros opcionales
+ *     parameters:
+ *       - in: query
+ *         name: estado
+ *         schema:
+ *           type: string
+ *           enum: [DISPONIBLE, PRESTADA, MANTENIMIENTO, DANADA, PERDIDA]
+ *         description: Filtrar por estado
+ *       - in: query
+ *         name: categoria_id
+ *         schema:
+ *           type: integer
+ *         description: Filtrar por ID de categoría
+ *     responses:
+ *       200:
+ *         description: Lista de herramientas
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Herramienta'
+ */
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -33,6 +63,55 @@ export async function GET(request: NextRequest) {
   }
 }
 
+/**
+ * @openapi
+ * /herramientas:
+ *   post:
+ *     tags:
+ *       - Herramientas
+ *     summary: Crear herramienta
+ *     description: Crea una nueva herramienta con código QR automático
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - nombre
+ *               - categoria_id
+ *             properties:
+ *               nombre:
+ *                 type: string
+ *                 minLength: 2
+ *               marca:
+ *                 type: string
+ *               modelo:
+ *                 type: string
+ *               fecha_compra:
+ *                 type: string
+ *                 format: date
+ *               valor_compra:
+ *                 type: number
+ *               categoria_id:
+ *                 type: integer
+ *           examples:
+ *             nueva:
+ *               value:
+ *                 nombre: Taladro Percutor
+ *                 marca: Bosch
+ *                 modelo: GSB 16 RE
+ *                 categoria_id: 1
+ *     responses:
+ *       201:
+ *         description: Herramienta creada
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Herramienta'
+ *       400:
+ *         description: Datos inválidos
+ */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
